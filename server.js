@@ -98,9 +98,9 @@ const startServer = async () => {
 
   app.use("/graphql", expressMiddleware(server));
 
-  app.listen(4000, () => {
-    console.log("GraphQL server running on port 4000");
-  });
+  app.listen(process.env.PORT || 4000, () => {
+  console.log("GraphQL server running");
+});
 };
 
 startServer();
