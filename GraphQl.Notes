@@ -1,0 +1,25 @@
+GRAPHQL + MONGODB NOTES
+
+MongoDB:
+- MongoDB is a NoSQL document database.
+- Atlas is MongoDB's cloud database service.
+- GraphQL is not a database.
+- GraphQL works between client and backend/data source.
+
+GraphQL:
+- typeDefs = GraphQL schema definitions
+- Schema = API ka rulebook/structure
+- Query = data read karne ki request
+- Resolver = actual data return/fetch karne wali function
+- Client can request only the fields it needs
+
+GraphQL Operations
+
+Query:
+- Read/fetch data
+
+Mutation:
+- Create/update/delete data
+
+Resolver:
+- Operation ko actual code se handle karta hai
