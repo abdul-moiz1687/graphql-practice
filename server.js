@@ -1,9 +1,11 @@
+require("dotenv").config();
+
 const express = require("express");
 const { ApolloServer } = require("@apollo/server");
 const { expressMiddleware } = require("@as-integrations/express5");
+
 const connectDB = require("./config/db");
 const User = require("./models/User");
-require("dotenv").config();
 
 const app = express();
 
@@ -19,21 +21,21 @@ const typeDefs = `#graphql
   }
 
   type Mutation {
-  createUser(input: CreateUserInput!): User!
+    createUser(input: CreateUserInput!): User!
 
-  updateUser(
-    id: ID!
+    updateUser(
+      id: ID!
+      name: String!
+      email: String!
+    ): User!
+
+    deleteUser(id: ID!): User!
+  }
+
+  input CreateUserInput {
     name: String!
     email: String!
-  ): User!
-
-  deleteUser(id: ID!): User!
-}
-
-input CreateUserInput {
-  name: String!
-  email: String!
-}
+  }
 `;
 
 const resolvers = {
@@ -44,14 +46,14 @@ const resolvers = {
   },
 
   Mutation: {
-   createUser: async (_, args) => {
-  const user = await User.create({
-    name: args.input.name,
-    email: args.input.email,
-  });
+    createUser: async (_, args) => {
+      const user = await User.create({
+        name: args.input.name,
+        email: args.input.email,
+      });
 
-  return user;
-},
+      return user;
+    },
 
     updateUser: async (_, args) => {
       const user = await User.findByIdAndUpdate(
@@ -84,23 +86,42 @@ const resolvers = {
     },
   },
 };
+
 const server = new ApolloServer({
   typeDefs,
   resolvers,
 });
 
-const startServer = async () => {
-  await server.start();
+let serverReady;
 
-  await connectDB();
+const initializeServer = async () => {
+  if (!serverReady) {
+    serverReady = (async () => {
+      await server.start();
 
-  app.use(express.json());
+      await connectDB();
 
-  app.use("/graphql", expressMiddleware(server));
+      app.use(express.json());
 
- app.listen(process.env.PORT || 4000, "0.0.0.0", () => {
-  console.log("GraphQL server running");
-});
+      app.use("/graphql", expressMiddleware(server));
+    })();
+  }
+
+  return serverReady;
 };
 
-startServer();
+const handler = async (req, res) => {
+  await initializeServer();
+
+  return app(req, res);
+};
+
+module.exports = handler;
+
+if (require.main === module) {
+  initializeServer().then(() => {
+    app.listen(process.env.PORT || 4000, "0.0.0.0", () => {
+      console.log("GraphQL server running");
+    });
+  });
+}
